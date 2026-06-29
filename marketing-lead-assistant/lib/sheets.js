@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import sheets from '@googleapis/sheets';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
