@@ -16,7 +16,7 @@ function getAuth() {
 
 export async function getSheetsClient() {
   const auth = getAuth();
-  return google.sheets({ version: 'v4', auth });
+  return sheets.sheets({ version: 'v4', auth });
 }
 
 export function leadFromRow(row = []) {
