@@ -1,11 +1,11 @@
-import { google } from 'googleapis'
-import { GoogleAuth } from 'google-auth-library';
+import { google } from 'googleapis';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 function getAuth() {
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-  return new GoogleAuth({
+
+  return new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       private_key: privateKey,
@@ -16,7 +16,7 @@ function getAuth() {
 
 export async function getSheetsClient() {
   const auth = getAuth();
-  return google({ version: 'v4', auth });
+  return google.sheets({ version: 'v4', auth });
 }
 
 export function leadFromRow(row = []) {
@@ -61,15 +61,18 @@ export function leadToRow(lead) {
 
 export async function listLeads() {
   const sheets = await getSheetsClient();
+
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: 'Leads!A2:O',
   });
-  return (res.data.values || []).filter(r => r[0]).map(leadFromRow);
+
+  return (res.data.values || []).filter((r) => r[0]).map(leadFromRow);
 }
 
 export async function addLead(lead) {
   const sheets = await getSheetsClient();
+
   const newLead = {
     ...lead,
     id: crypto.randomUUID(),
@@ -77,17 +80,20 @@ export async function addLead(lead) {
     status: lead.status || 'Da contattare',
     signature: lead.signature || 'Riccardo - AppStream',
   };
+
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
     range: 'Leads!A:O',
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [leadToRow(newLead)] },
   });
+
   return newLead;
 }
 
 export async function appendHistory(entry) {
   const sheets = await getSheetsClient();
+
   const row = [
     crypto.randomUUID(),
     new Date().toISOString(),
@@ -98,11 +104,13 @@ export async function appendHistory(entry) {
     entry.text || '',
     entry.signature || 'Riccardo - AppStream',
   ];
+
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
     range: 'Storico!A:H',
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [row] },
   });
+
   return { ok: true };
 }
